@@ -28,7 +28,7 @@
             color: white;
             padding: 2rem 0;
             border-bottom: 5px solid #343a40;
-            margin-bottom: -40px; /* Overlap untuk kartu agar terlihat melayang */
+            margin-bottom: -40px; 
         }
 
         /* Card Styling */
@@ -59,7 +59,7 @@
         }
         .form-select:focus { border-color: var(--se-orange); box-shadow: 0 0 0 0.25rem rgba(242, 101, 34, 0.25); }
 
-        /* Metric Cards ala GCPBI tapi Modern */
+        /* Metric Cards */
         .metric-card {
             border-left: 5px solid #ccc;
             padding: 20px;
@@ -136,7 +136,7 @@
             <div class="col-xl-3 col-md-6 mb-3">
                 <div class="card metric-card border-orange shadow-sm">
                     <i class="fa-solid fa-pen-to-square metric-icon"></i>
-                    <div class="metric-title">Draft Tersimpan</div>
+                    <div class="metric-title">Draft / Sedang Diedit</div>
                     <h2 id="valDraft" class="metric-value">0</h2>
                 </div>
             </div>
@@ -218,7 +218,6 @@
         let dataTable;
         let donutChart;
 
-        // Inisialisasi Data
         Papa.parse("REKAP_SE2026_BOGOR.csv", {
             download: true,
             header: true,
@@ -235,15 +234,28 @@
             return s;
         }
 
+        // 🔥 FUNGSI CERDAS: MENGELOMPOKKAN NAMA STATUS FASIH YANG RUMIT KE 4 KATEGORI UTAMA
+        function getGroupedStatus(row, kategori) {
+            let total = 0;
+            if (kategori === 'Open') {
+                total = parseInt(row['OPEN'] || 0) + parseInt(row['Open'] || 0);
+            } else if (kategori === 'Draft') {
+                total = parseInt(row['DRAFT'] || 0) + parseInt(row['EDITED BY Pengawas'] || 0) + parseInt(row['Draft'] || 0);
+            } else if (kategori === 'Submit') {
+                total = parseInt(row['SUBMITTED BY Pencacah'] || 0) + parseInt(row['SUBMITTED RESPONDENT'] || 0) + parseInt(row['APPROVED BY Pengawas'] || 0) + parseInt(row['Submit'] || 0);
+            } else if (kategori === 'Reject') {
+                total = parseInt(row['REJECTED BY Pengawas'] || 0) + parseInt(row['REVOKED BY Pengawas'] || 0) + parseInt(row['Rejected'] || 0);
+            }
+            return isNaN(total) ? 0 : total;
+        }
+
         function initDashboard() {
-            // Setup Filter Kecamatan
             const kecSet = new Set(globalData.map(item => padZero(item.kdkec, 3)));
             const filterKec = document.getElementById("filterKec");
             Array.from(kecSet).sort().forEach(kec => {
                 filterKec.appendChild(new Option("Kecamatan " + kec, kec));
             });
 
-            // Inisiasi DataTable
             dataTable = $('#dataTable').DataTable({
                 data: globalData,
                 columns: [
@@ -251,15 +263,18 @@
                     { data: 'kddesa', render: data => padZero(data, 3) },
                     { data: 'kdsls', render: data => padZero(data, 4) },
                     { data: 'user', render: data => `<strong class="text-primary">${data}</strong>` },
-                    { data: 'Open', className: 'text-center', render: data => `<span class="badge bg-secondary">${data}</span>` },
-                    { data: 'Draft', className: 'text-center', render: data => `<span class="badge badge-draft">${data}</span>` },
-                    { data: 'Submit', className: 'text-center', render: data => `<span class="badge bg-success">${data}</span>` },
-                    { data: 'Rejected', className: 'text-center', render: data => data > 0 ? `<span class="badge bg-danger">${data}</span>` : `<span class="badge text-muted">0</span>` },
+                    { data: null, className: 'text-center', render: (data, type, row) => `<span class="badge bg-secondary">${getGroupedStatus(row, 'Open')}</span>` },
+                    { data: null, className: 'text-center', render: (data, type, row) => `<span class="badge badge-draft">${getGroupedStatus(row, 'Draft')}</span>` },
+                    { data: null, className: 'text-center', render: (data, type, row) => `<span class="badge bg-success">${getGroupedStatus(row, 'Submit')}</span>` },
+                    { data: null, className: 'text-center', render: (data, type, row) => {
+                        let rej = getGroupedStatus(row, 'Reject');
+                        return rej > 0 ? `<span class="badge bg-danger">${rej}</span>` : `<span class="badge text-muted">0</span>`; 
+                    }},
                     { 
                         data: null, 
                         className: 'text-center fw-bold',
                         render: function(data, type, row) {
-                            return (row.Open || 0) + (row.Draft || 0) + (row.Submit || 0) + (row.Rejected || 0);
+                            return getGroupedStatus(row, 'Open') + getGroupedStatus(row, 'Draft') + getGroupedStatus(row, 'Submit') + getGroupedStatus(row, 'Reject');
                         }
                     }
                 ],
@@ -270,7 +285,6 @@
 
             updateVisuals(globalData);
 
-            // Event Listener Kecamatan Berubah
             $('#filterKec').on('change', function() {
                 const kec = this.value;
                 const filterDesa = document.getElementById("filterDesa");
@@ -292,7 +306,6 @@
                 }
             });
 
-            // Event Listener Desa Berubah
             $('#filterDesa').on('change', function() {
                 const kec = $('#filterKec').val();
                 const desa = this.value;
@@ -306,35 +319,31 @@
                 }
             });
 
-            // Reset Button
-            $('#btnReset').click(function() {
-                $('#filterKec').val('').trigger('change');
-            });
+            $('#btnReset').click(function() { $('#filterKec').val('').trigger('change'); });
         }
 
         function updateVisuals(data) {
             let tOpen = 0, tDraft = 0, tSubmit = 0, tReject = 0;
             data.forEach(r => {
-                tOpen += (r.Open || 0); tDraft += (r.Draft || 0);
-                tSubmit += (r.Submit || 0); tReject += (r.Rejected || 0);
+                tOpen += getGroupedStatus(r, 'Open');
+                tDraft += getGroupedStatus(r, 'Draft');
+                tSubmit += getGroupedStatus(r, 'Submit');
+                tReject += getGroupedStatus(r, 'Reject');
             });
 
             let tTarget = tOpen + tDraft + tSubmit + tReject;
             let percent = tTarget === 0 ? 0 : Math.round((tSubmit / tTarget) * 100);
 
-            // Update Kartu
             document.getElementById("valOpen").innerText = tOpen.toLocaleString();
             document.getElementById("valDraft").innerText = tDraft.toLocaleString();
             document.getElementById("valSubmit").innerText = tSubmit.toLocaleString();
             document.getElementById("valReject").innerText = tReject.toLocaleString();
 
-            // Update Progress Bar
             const pBar = document.getElementById("mainProgressBar");
             pBar.style.width = percent + "%";
             pBar.innerText = percent + "% (" + tSubmit.toLocaleString() + " / " + tTarget.toLocaleString() + ")";
             pBar.className = "progress-bar progress-bar-striped progress-bar-animated " + (percent < 50 ? "bg-warning text-dark" : "progress-bar-se");
 
-            // Update Donut Chart
             if(donutChart) {
                 donutChart.data.datasets[0].data = [tOpen, tDraft, tSubmit, tReject];
                 donutChart.update();
