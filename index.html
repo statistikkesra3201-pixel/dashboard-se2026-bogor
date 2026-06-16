@@ -16,18 +16,18 @@
         .card { border: none; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.06); background-color: white; margin-bottom: 20px; }
         .card-header-se { background-color: transparent; border-bottom: 2px solid var(--bg-body); font-weight: 700; color: #444; padding: 15px 20px; }
         .filter-panel { background-color: white; border-radius: 12px; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.06); position: relative; z-index: 10; }
-        .metric-card { border-left: 5px solid #ccc; padding: 15px; border-radius: 10px; transition: transform 0.2s; height: 100%; }
+        .metric-card { border-left: 5px solid #ccc; padding: 20px; border-radius: 10px; transition: transform 0.2s; }
         .metric-card:hover { transform: translateY(-3px); }
-        .metric-title { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; color: #6c757d; }
-        .metric-value { font-size: 2rem; font-weight: 800; color: #2c3e50; margin-bottom: 0; }
-        .metric-icon { font-size: 2rem; opacity: 0.15; color: #343a40; float: right; margin-top: -5px;}
+        .metric-title { font-size: 0.9rem; font-weight: 600; text-transform: uppercase; color: #6c757d; }
+        .metric-value { font-size: 2.2rem; font-weight: 800; color: #2c3e50; margin-bottom: 0; }
+        .metric-icon { font-size: 2.5rem; opacity: 0.2; color: #343a40; float: right; margin-top: -10px;}
         .progress-main { height: 25px; border-radius: 15px; background-color: #e9ecef; }
         .progress-bar-se { background-color: #198754; font-weight: bold; font-size: 1rem; line-height: 25px;}
-        .table-custom th { background-color: #343a40; color: white; border-bottom: 3px solid var(--se-orange) !important; font-size: 0.85rem; text-align: center; vertical-align: middle; }
-        .table-custom td { vertical-align: middle; font-size: 0.85rem; }
-        .badge { font-size: 0.8rem; padding: 0.4em 0.6em; }
+        .table-custom th { background-color: #343a40; color: white; border-bottom: 3px solid var(--se-orange) !important; font-size: 0.9rem; }
+        .table-custom td { vertical-align: middle; font-size: 0.9rem; }
+        .badge { font-size: 0.85rem; padding: 0.4em 0.7em; }
         .badge-draft { background-color: var(--se-orange); color: white; }
-        .text-wrap-custom { max-width: 200px; white-space: normal; }
+        .text-wrap-custom { max-width: 250px; white-space: normal; }
     </style>
 </head>
 <body>
@@ -65,46 +65,39 @@
         </div>
 
         <div class="card mb-4 p-4">
-            <h5 class="fw-bold text-muted mb-3">Persentase Selesai (Submit + Approved vs Total Target)</h5>
+            <h5 class="fw-bold text-muted mb-3">Persentase Selesai (Submit vs Total Target)</h5>
             <div class="progress progress-main shadow-sm">
                 <div id="mainProgressBar" class="progress-bar progress-bar-se progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%;">0%</div>
             </div>
         </div>
 
         <div class="row mb-4">
-            <div class="col-xl col-md-4 col-sm-6 mb-3">
-                <div class="card metric-card shadow-sm" style="border-left-color: #6c757d;">
-                    <i class="fa-solid fa-folder-open metric-icon"></i>
-                    <div class="metric-title">Open</div>
-                    <h2 id="valOpen" class="metric-value">0</h2>
-                </div>
-            </div>
-            <div class="col-xl col-md-4 col-sm-6 mb-3">
+            <div class="col-xl-3 col-md-6 mb-3">
                 <div class="card metric-card shadow-sm" style="border-left-color: #F26522;">
                     <i class="fa-solid fa-pen-to-square metric-icon"></i>
-                    <div class="metric-title">Draft</div>
+                    <div class="metric-title">Draft / Sedang Diedit</div>
                     <h2 id="valDraft" class="metric-value">0</h2>
                 </div>
             </div>
-            <div class="col-xl col-md-4 col-sm-6 mb-3">
-                <div class="card metric-card shadow-sm" style="border-left-color: #0d6efd;">
-                    <i class="fa-solid fa-paper-plane metric-icon text-primary"></i>
-                    <div class="metric-title text-primary">Submit (Pcl)</div>
-                    <h2 id="valSubmit" class="metric-value text-primary">0</h2>
-                </div>
-            </div>
-            <div class="col-xl col-md-6 col-sm-6 mb-3">
+            <div class="col-xl-3 col-md-6 mb-3">
                 <div class="card metric-card shadow-sm" style="border-left-color: #198754;">
                     <i class="fa-solid fa-check-double metric-icon text-success"></i>
-                    <div class="metric-title text-success">Approved (Pml)</div>
-                    <h2 id="valApprove" class="metric-value text-success">0</h2>
+                    <div class="metric-title text-success">Berhasil Submit</div>
+                    <h2 id="valSubmit" class="metric-value text-success">0</h2>
                 </div>
             </div>
-            <div class="col-xl col-md-6 col-sm-12 mb-3">
+            <div class="col-xl-3 col-md-6 mb-3">
                 <div class="card metric-card shadow-sm" style="border-left-color: #dc3545;">
                     <i class="fa-solid fa-triangle-exclamation metric-icon text-danger"></i>
-                    <div class="metric-title text-danger">Rejected</div>
+                    <div class="metric-title text-danger">Data Rejected</div>
                     <h2 id="valReject" class="metric-value text-danger">0</h2>
+                </div>
+            </div>
+            <div class="col-xl-3 col-md-6 mb-3">
+                <div class="card metric-card shadow-sm" style="border-left-color: #6c757d;">
+                    <i class="fa-solid fa-folder-open metric-icon"></i>
+                    <div class="metric-title">Belum Dikerjakan (Open)</div>
+                    <h2 id="valOpen" class="metric-value">0</h2>
                 </div>
             </div>
         </div>
@@ -133,16 +126,15 @@
                             <table id="dataTable" class="table table-hover table-custom w-100">
                                 <thead>
                                     <tr>
-                                        <th class="text-start">Kecamatan</th>
-                                        <th class="text-start">Desa (Gabungan)</th>
-                                        <th class="text-start">SLS (Gabungan)</th>
-                                        <th class="text-start">Petugas</th>
-                                        <th>Open</th>
-                                        <th>Draft</th>
-                                        <th>Submit</th>
-                                        <th>Apprv</th>
-                                        <th>Reject</th>
-                                        <th>Target</th>
+                                        <th>Kecamatan</th>
+                                        <th>Desa (Gabungan)</th>
+                                        <th>SLS (Gabungan)</th>
+                                        <th>Petugas</th>
+                                        <th class="text-center">Open</th>
+                                        <th class="text-center">Draft</th>
+                                        <th class="text-center">Submit</th>
+                                        <th class="text-center">Reject</th>
+                                        <th class="text-center">Target</th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
@@ -182,29 +174,12 @@
             return s;
         }
 
-        // 🔥 LOGIKA SUPER KETAT: Memisahkan beban kerja Pencacah & Pengawas
-        function getGroupedStatus(row, kategori, userName) {
+        function getGroupedStatus(row, kategori) {
             let total = 0;
-            // Deteksi apakah baris ini milik Pengawas
-            let isPengawas = String(userName).toLowerCase().includes('pengawas');
-
-            // ATURAN 1: Pengawas HANYA terisi kalau Approved dan Rejected (Open, Draft, Submit = 0)
-            if (isPengawas && (kategori === 'Open' || kategori === 'Draft' || kategori === 'Submit')) {
-                return 0;
-            }
-
-            if (kategori === 'Open') {
-                total = parseInt(row['OPEN'] || 0) + parseInt(row['Open'] || 0);
-            } else if (kategori === 'Draft') {
-                total = parseInt(row['DRAFT'] || 0) + parseInt(row['EDITED BY Pengawas'] || 0) + parseInt(row['Draft'] || 0);
-            } else if (kategori === 'Submit') {
-                total = parseInt(row['SUBMITTED BY Pencacah'] || 0) + parseInt(row['SUBMITTED RESPONDENT'] || 0) + parseInt(row['Submit'] || 0);
-            } else if (kategori === 'Approved') {
-                total = parseInt(row['APPROVED BY Pengawas'] || 0) + parseInt(row['Approved'] || 0);
-            } else if (kategori === 'Reject') {
-                total = parseInt(row['REJECTED BY Pengawas'] || 0) + parseInt(row['REVOKED BY Pengawas'] || 0) + parseInt(row['Rejected'] || 0);
-            }
-            
+            if (kategori === 'Open') total = parseInt(row['OPEN'] || 0) + parseInt(row['Open'] || 0);
+            else if (kategori === 'Draft') total = parseInt(row['DRAFT'] || 0) + parseInt(row['EDITED BY Pengawas'] || 0) + parseInt(row['Draft'] || 0);
+            else if (kategori === 'Submit') total = parseInt(row['SUBMITTED BY Pencacah'] || 0) + parseInt(row['SUBMITTED RESPONDENT'] || 0) + parseInt(row['APPROVED BY Pengawas'] || 0) + parseInt(row['Submit'] || 0);
+            else if (kategori === 'Reject') total = parseInt(row['REJECTED BY Pengawas'] || 0) + parseInt(row['REVOKED BY Pengawas'] || 0) + parseInt(row['Rejected'] || 0);
             return isNaN(total) ? 0 : total;
         }
 
@@ -218,10 +193,13 @@
                 
                 if (!grouped[key]) {
                     let nmkecTampil = (row.nmkec && row.nmkec !== 'TANPA NAMA KEC') ? `[${kecPad}] ${row.nmkec}` : `[${kecPad}]`;
+                    
                     grouped[key] = {
-                        kdkec_raw: kecPad, kdkec_tampil: nmkecTampil,
-                        kddesa_set: new Set(), kdsls_set: new Set(),
-                        user: userName, Open: 0, Draft: 0, Submit: 0, Approved: 0, Reject: 0
+                        kdkec_raw: kecPad, 
+                        kdkec_tampil: nmkecTampil,
+                        kddesa_set: new Set(), 
+                        kdsls_set: new Set(),
+                        user: userName, Open: 0, Draft: 0, Submit: 0, Reject: 0
                     };
                 }
                 
@@ -241,20 +219,19 @@
                     grouped[key].kdsls_set.add(padZero(row.kdsls, 4) + namaSls);
                 }
                 
-                grouped[key].Open += getGroupedStatus(row, 'Open', userName);
-                grouped[key].Draft += getGroupedStatus(row, 'Draft', userName);
-                grouped[key].Submit += getGroupedStatus(row, 'Submit', userName);
-                grouped[key].Approved += getGroupedStatus(row, 'Approved', userName);
-                grouped[key].Reject += getGroupedStatus(row, 'Reject', userName);
+                grouped[key].Open += getGroupedStatus(row, 'Open');
+                grouped[key].Draft += getGroupedStatus(row, 'Draft');
+                grouped[key].Submit += getGroupedStatus(row, 'Submit');
+                grouped[key].Reject += getGroupedStatus(row, 'Reject');
             });
             
             return Object.values(grouped).map(item => {
                 return {
-                    kdkec_raw: item.kdkec_raw, kdkec_tampil: item.kdkec_tampil,
+                    kdkec_raw: item.kdkec_raw,
+                    kdkec_tampil: item.kdkec_tampil,
                     kddesa_str: Array.from(item.kddesa_set).sort().join('<br>'),
                     kdsls_str: Array.from(item.kdsls_set).sort().join('<br>'),
-                    user: item.user, Open: item.Open, Draft: item.Draft, 
-                    Submit: item.Submit, Approved: item.Approved, Reject: item.Reject
+                    user: item.user, Open: item.Open, Draft: item.Draft, Submit: item.Submit, Reject: item.Reject
                 };
             });
         }
@@ -277,16 +254,15 @@
                     { data: 'kdkec_tampil' },
                     { data: 'kddesa_str', className: 'text-wrap-custom' },
                     { data: 'kdsls_str', className: 'text-wrap-custom' }, 
-                    { data: 'user', render: data => `<strong class="text-dark">${data}</strong>` },
+                    { data: 'user', render: data => `<strong class="text-primary">${data}</strong>` },
                     { data: 'Open', className: 'text-center', render: data => `<span class="badge bg-secondary">${data}</span>` },
                     { data: 'Draft', className: 'text-center', render: data => `<span class="badge badge-draft">${data}</span>` },
-                    { data: 'Submit', className: 'text-center', render: data => `<span class="badge bg-primary">${data}</span>` },
-                    { data: 'Approved', className: 'text-center', render: data => `<span class="badge bg-success">${data}</span>` },
+                    { data: 'Submit', className: 'text-center', render: data => `<span class="badge bg-success">${data}</span>` },
                     { data: 'Reject', className: 'text-center', render: data => data > 0 ? `<span class="badge bg-danger">${data}</span>` : `<span class="badge text-muted">0</span>` },
-                    { data: null, className: 'text-center fw-bold', render: (data, type, row) => row.Open + row.Draft + row.Submit + row.Approved + row.Reject }
+                    { data: null, className: 'text-center fw-bold', render: (data, type, row) => row.Open + row.Draft + row.Submit + row.Reject }
                 ],
                 pageLength: 10,
-                order: [[8, "asc"]], 
+                order: [[6, "asc"]], 
                 language: { search: "Cari Data:", lengthMenu: "Tampil _MENU_", info: "Menampilkan _START_ - _END_ dari _TOTAL_ petugas" }
             });
 
@@ -324,15 +300,18 @@
 
             $('#btnReset').click(function() { $('#filterKec').val('').trigger('change'); });
 
+            // 🔥 LOGIKA OPTIMASI (TURBO DOWNLOAD): Pecah rincian SLS instan tanpa loading lama
             $('#btnDownload').click(function() {
                 const kec = $('#filterKec').val();
                 const desa = $('#filterDesa').val();
                 const searchText = dataTable.search().toLowerCase();
 
+                // 1. Filter wilayah secara cepat menggunakan memori array bawaan v8 engine
                 let filteredRaw = globalData;
                 if (kec !== "") filteredRaw = filteredRaw.filter(d => padZero(d.kdkec, 3) === kec);
                 if (desa !== "") filteredRaw = filteredRaw.filter(d => padZero(d.kddesa, 3) === desa);
                 
+                // 2. Jika ada keyword pencarian, lakukan filtering berbasis indeks teks
                 if (searchText !== "") {
                     filteredRaw = filteredRaw.filter(d => {
                         return (d.user && d.user.toLowerCase().includes(searchText)) ||
@@ -343,19 +322,21 @@
                     });
                 }
 
-                if (filteredRaw.length === 0) return alert("Tidak ada data rincian SLS yang cocok untuk diunduh!");
+                if (filteredRaw.length === 0) {
+                    alert("Tidak ada data untuk diunduh!");
+                    return;
+                }
 
-                // Header CSV Update (Ada Kolom Approved)
-                let csvRows = ["Kode Kecamatan;Nama Kecamatan;Kode Desa;Nama Desa;Kode SLS;Nama SLS;Nama Petugas;Open;Draft;Submit;Approved;Reject;Total Target"];
+                // 3. Bangun string CSV menggunakan skema Array Join (Metode tercepat di JS)
+                let csvRows = ["Kode Kecamatan;Nama Kecamatan;Kode Desa;Nama Desa;Kode SLS;Nama SLS;Nama Petugas;Open;Draft;Submit;Reject;Total Target"];
                 
                 for (let i = 0; i < filteredRaw.length; i++) {
                     let row = filteredRaw[i];
-                    let openVal = getGroupedStatus(row, 'Open', row.user);
-                    let draftVal = getGroupedStatus(row, 'Draft', row.user);
-                    let submitVal = getGroupedStatus(row, 'Submit', row.user);
-                    let appVal = getGroupedStatus(row, 'Approved', row.user);
-                    let rejectVal = getGroupedStatus(row, 'Reject', row.user);
-                    let totalTarget = openVal + draftVal + submitVal + appVal + rejectVal;
+                    let openVal = getGroupedStatus(row, 'Open');
+                    let draftVal = getGroupedStatus(row, 'Draft');
+                    let submitVal = getGroupedStatus(row, 'Submit');
+                    let rejectVal = getGroupedStatus(row, 'Reject');
+                    let totalTarget = openVal + draftVal + submitVal + rejectVal;
 
                     let cleanUser = (row.user || "").replace(/"/g, '""');
                     let cleanKec = (row.nmkec || "TANPA NAMA KEC").replace(/"/g, '""');
@@ -363,13 +344,22 @@
                     let cleanSls = (row.nmsls || "TANPA SLS").replace(/"/g, '""');
 
                     csvRows.push([
-                        padZero(row.kdkec, 3), `"${cleanKec}"`,
-                        padZero(row.kddesa, 3), `"${cleanDesa}"`,
-                        padZero(row.kdsls, 4), `"${cleanSls}"`,
-                        `"${cleanUser}"`, openVal, draftVal, submitVal, appVal, rejectVal, totalTarget
+                        padZero(row.kdkec, 3),
+                        `"${cleanKec}"`,
+                        padZero(row.kddesa, 3),
+                        `"${cleanDesa}"`,
+                        padZero(row.kdsls, 4),
+                        `"${cleanSls}"`,
+                        `"${cleanUser}"`,
+                        openVal,
+                        draftVal,
+                        submitVal,
+                        rejectVal,
+                        totalTarget
                     ].join(";"));
                 }
 
+                // 4. Download Trigger
                 let activeKec = kec || "SemuaKecamatan";
                 let activeDesa = desa || "SemuaDesa";
                 let blob = new Blob([csvRows.join("\n")], { type: 'text/csv;charset=utf-8;' });
@@ -384,43 +374,36 @@
         }
 
         function updateVisuals(data) {
-            let tOpen = 0, tDraft = 0, tSubmit = 0, tApprove = 0, tReject = 0;
+            let tOpen = 0, tDraft = 0, tSubmit = 0, tReject = 0;
             data.forEach(r => {
-                tOpen += getGroupedStatus(r, 'Open', r.user); 
-                tDraft += getGroupedStatus(r, 'Draft', r.user);
-                tSubmit += getGroupedStatus(r, 'Submit', r.user); 
-                tApprove += getGroupedStatus(r, 'Approved', r.user);
-                tReject += getGroupedStatus(r, 'Reject', r.user);
+                tOpen += getGroupedStatus(r, 'Open'); tDraft += getGroupedStatus(r, 'Draft');
+                tSubmit += getGroupedStatus(r, 'Submit'); tReject += getGroupedStatus(r, 'Reject');
             });
 
-            let tTarget = tOpen + tDraft + tSubmit + tApprove + tReject;
-            let tSelesai = tSubmit + tApprove; 
-            let percent = tTarget === 0 ? 0 : Math.round((tSelesai / tTarget) * 100);
+            let tTarget = tOpen + tDraft + tSubmit + tReject;
+            let percent = tTarget === 0 ? 0 : Math.round((tSubmit / tTarget) * 100);
 
             document.getElementById("valOpen").innerText = tOpen.toLocaleString();
             document.getElementById("valDraft").innerText = tDraft.toLocaleString();
             document.getElementById("valSubmit").innerText = tSubmit.toLocaleString();
-            document.getElementById("valApprove").innerText = tApprove.toLocaleString();
             document.getElementById("valReject").innerText = tReject.toLocaleString();
 
             const pBar = document.getElementById("mainProgressBar");
             pBar.style.width = percent + "%";
-            pBar.innerText = percent + "% (" + tSelesai.toLocaleString() + " / " + tTarget.toLocaleString() + ")";
+            pBar.innerText = percent + "% (" + tSubmit.toLocaleString() + " / " + tTarget.toLocaleString() + ")";
             pBar.className = "progress-bar progress-bar-striped progress-bar-animated " + (percent < 50 ? "bg-warning text-dark" : "progress-bar-se");
 
             if(donutChart) {
-                donutChart.data.labels = ['Open', 'Draft', 'Submit', 'Approved', 'Rejected'];
-                donutChart.data.datasets[0].data = [tOpen, tDraft, tSubmit, tApprove, tReject];
-                donutChart.data.datasets[0].backgroundColor = ['#6c757d', '#F26522', '#0d6efd', '#198754', '#dc3545'];
+                donutChart.data.datasets[0].data = [tOpen, tDraft, tSubmit, tReject];
                 donutChart.update();
             } else {
                 donutChart = new Chart(document.getElementById('donutChart').getContext('2d'), {
                     type: 'doughnut',
                     data: {
-                        labels: ['Open', 'Draft', 'Submit', 'Approved', 'Rejected'],
+                        labels: ['Open', 'Draft', 'Submit', 'Rejected'],
                         datasets: [{
-                            data: [tOpen, tDraft, tSubmit, tApprove, tReject],
-                            backgroundColor: ['#6c757d', '#F26522', '#0d6efd', '#198754', '#dc3545'],
+                            data: [tOpen, tDraft, tSubmit, tReject],
+                            backgroundColor: ['#6c757d', '#F26522', '#198754', '#dc3545'],
                             borderWidth: 0
                         }]
                     },
