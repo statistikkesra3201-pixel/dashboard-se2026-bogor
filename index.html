@@ -59,7 +59,7 @@
                     <button id="btnReset" class="btn btn-outline-secondary btn-lg w-100"><i class="fa-solid fa-rotate-right me-1"></i> Reset</button>
                 </div>
                 <div class="col-md-2 mt-3 mt-md-0">
-                    <button id="btnDownload" class="btn btn-success btn-lg w-100 shadow-sm"><i class="fa-solid fa-file-excel me-1"></i> Unduh Data</button>
+                    <button id="btnDownload" class="btn btn-success btn-lg w-100 shadow-sm"><i class="fa-solid fa-file-excel me-1"></i> Unduh Excel</button>
                 </div>
             </div>
         </div>
@@ -151,6 +151,8 @@
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
     <script>
         let globalData = [];
@@ -300,18 +302,16 @@
 
             $('#btnReset').click(function() { $('#filterKec').val('').trigger('change'); });
 
-            // 🔥 LOGIKA OPTIMASI (TURBO DOWNLOAD): Pecah rincian SLS instan tanpa loading lama
+            // 🔥 LOGIKA EXPORT EXCEL RAPIH MENGGUNAKAN SHEETJS
             $('#btnDownload').click(function() {
                 const kec = $('#filterKec').val();
                 const desa = $('#filterDesa').val();
                 const searchText = dataTable.search().toLowerCase();
 
-                // 1. Filter wilayah secara cepat menggunakan memori array bawaan v8 engine
                 let filteredRaw = globalData;
                 if (kec !== "") filteredRaw = filteredRaw.filter(d => padZero(d.kdkec, 3) === kec);
                 if (desa !== "") filteredRaw = filteredRaw.filter(d => padZero(d.kddesa, 3) === desa);
                 
-                // 2. Jika ada keyword pencarian, lakukan filtering berbasis indeks teks
                 if (searchText !== "") {
                     filteredRaw = filteredRaw.filter(d => {
                         return (d.user && d.user.toLowerCase().includes(searchText)) ||
@@ -327,8 +327,10 @@
                     return;
                 }
 
-                // 3. Bangun string CSV menggunakan skema Array Join (Metode tercepat di JS)
-                let csvRows = ["Kode Kecamatan;Nama Kecamatan;Kode Desa;Nama Desa;Kode SLS;Nama SLS;Nama Petugas;Open;Draft;Submit;Reject;Total Target"];
+                // Siapkan wadah Array untuk Excel
+                let excelData = [];
+                // Judul Kolom (Header)
+                excelData.push(["Kode Kecamatan", "Nama Kecamatan", "Kode Desa", "Nama Desa", "Kode SLS", "Nama SLS", "Nama Petugas", "Open", "Draft", "Submit", "Reject", "Total Target"]);
                 
                 for (let i = 0; i < filteredRaw.length; i++) {
                     let row = filteredRaw[i];
@@ -338,38 +340,57 @@
                     let rejectVal = getGroupedStatus(row, 'Reject');
                     let totalTarget = openVal + draftVal + submitVal + rejectVal;
 
-                    let cleanUser = (row.user || "").replace(/"/g, '""');
-                    let cleanKec = (row.nmkec || "TANPA NAMA KEC").replace(/"/g, '""');
-                    let cleanDesa = (row.nmdesa || "TANPA NAMA DESA").replace(/"/g, '""');
-                    let cleanSls = (row.nmsls || "TANPA SLS").replace(/"/g, '""');
+                    // Bersihkan karakter kutip ganda sisa pemrosesan CSV
+                    let cleanUser = (row.user || "").replace(/"/g, '');
+                    let cleanKec = (row.nmkec || "TANPA NAMA KEC").replace(/"/g, '');
+                    let cleanDesa = (row.nmdesa || "TANPA NAMA DESA").replace(/"/g, '');
+                    let cleanSls = (row.nmsls || "TANPA SLS").replace(/"/g, '');
 
-                    csvRows.push([
+                    // Masukkan baris data
+                    excelData.push([
                         padZero(row.kdkec, 3),
-                        `"${cleanKec}"`,
+                        cleanKec,
                         padZero(row.kddesa, 3),
-                        `"${cleanDesa}"`,
+                        cleanDesa,
                         padZero(row.kdsls, 4),
-                        `"${cleanSls}"`,
-                        `"${cleanUser}"`,
+                        cleanSls,
+                        cleanUser,
                         openVal,
                         draftVal,
                         submitVal,
                         rejectVal,
                         totalTarget
-                    ].join(";"));
+                    ]);
                 }
 
-                // 4. Download Trigger
+                // Membangun file Excel (*.xlsx)
+                let wb = XLSX.utils.book_new();
+                let ws = XLSX.utils.aoa_to_sheet(excelData);
+
+                // Mengatur lebar kolom agar data tidak terpotong
+                const wscols = [
+                    {wch: 15}, // Kode Kec
+                    {wch: 25}, // Nama Kec
+                    {wch: 12}, // Kode Desa
+                    {wch: 25}, // Nama Desa
+                    {wch: 12}, // Kode SLS
+                    {wch: 35}, // Nama SLS
+                    {wch: 35}, // Nama Petugas
+                    {wch: 10}, // Open
+                    {wch: 10}, // Draft
+                    {wch: 10}, // Submit
+                    {wch: 10}, // Reject
+                    {wch: 15}  // Total Target
+                ];
+                ws['!cols'] = wscols;
+
+                XLSX.utils.book_append_sheet(wb, ws, "Rincian SLS");
+
                 let activeKec = kec || "SemuaKecamatan";
                 let activeDesa = desa || "SemuaDesa";
-                let blob = new Blob([csvRows.join("\n")], { type: 'text/csv;charset=utf-8;' });
-                let link = document.createElement("a");
-                link.href = URL.createObjectURL(blob);
-                link.download = `Rincian_Lengkap_SLS_SE2026_${activeKec}_${activeDesa}.csv`;
-                link.style.visibility = 'hidden';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+                
+                // Men-trigger unduhan file Excel
+                XLSX.writeFile(wb, `Rincian_Lengkap_SLS_SE2026_${activeKec}_${activeDesa}.xlsx`);
             });
         }
 
