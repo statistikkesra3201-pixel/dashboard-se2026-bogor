@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        :root { --se-orange: #F26522; --bg-body: #f5f7f9; }
+        :root { var(--se-orange): #F26522; --bg-body: #f5f7f9; }
         body { background-color: var(--bg-body); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333; }
         .hero-header { background: linear-gradient(135deg, var(--se-orange) 0%, #d9531e 100%); color: white; padding: 2rem 0; border-bottom: 5px solid #343a40; margin-bottom: -40px; }
         .card { border: none; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.06); background-color: white; margin-bottom: 20px; }
@@ -192,11 +192,10 @@
                 let key = kecPad + "_" + userName; 
                 
                 if (!grouped[key]) {
-                    // Menyimpan format Kecamatan yang rapi
                     let nmkecTampil = (row.nmkec && row.nmkec !== 'TANPA NAMA KEC') ? `[${kecPad}] ${row.nmkec}` : `[${kecPad}]`;
                     
                     grouped[key] = {
-                        kdkec_raw: kecPad, // Untuk keperluan filter logic
+                        kdkec_raw: kecPad, 
                         kdkec_tampil: nmkecTampil,
                         kddesa_set: new Set(), 
                         kdsls_set: new Set(),
@@ -204,7 +203,6 @@
                     };
                 }
                 
-                // Format Desa yang rapi
                 if (row.kddesa) {
                     let desaPad = padZero(row.kddesa, 3);
                     let nmdesaTampil = (row.nmdesa && row.nmdesa !== 'TANPA NAMA DESA') ? `[${desaPad}] ${row.nmdesa}` : `[${desaPad}]`;
@@ -239,7 +237,6 @@
         }
 
         function initDashboard() {
-            // Membangun Dropdown Filter Kecamatan
             const filterKec = document.getElementById("filterKec");
             const kecMap = new Map();
             globalData.forEach(d => {
@@ -294,82 +291,4 @@
 
                 const desa = $('#filterDesa').val();
                 let filteredData = globalData;
-                if (kec !== "") filteredData = filteredData.filter(d => padZero(d.kdkec, 3) === kec);
-                if (desa !== "") filteredData = filteredData.filter(d => padZero(d.kddesa, 3) === desa);
-
-                dataTable.clear().rows.add(aggregateByPetugas(filteredData)).draw();
-                updateVisuals(filteredData);
-            });
-
-            $('#btnReset').click(function() { $('#filterKec').val('').trigger('change'); });
-
-            $('#btnDownload').click(function() {
-                let currentData = dataTable.rows({ search: 'applied' }).data().toArray();
-                if (currentData.length === 0) return alert("Tidak ada data untuk diunduh!");
-
-                let csvContent = "Kecamatan;Desa (Gabungan);SLS (Gabungan);Petugas;Open;Draft;Submit;Reject;Total Target\n";
-                currentData.forEach(row => {
-                    let totalTarget = row.Open + row.Draft + row.Submit + row.Reject;
-                    let cleanUser = row.user.replace(/"/g, '""'); 
-                    let cleanKec = row.kdkec_tampil.replace(/"/g, '""'); 
-                    let cleanDesa = row.kddesa_str.replace(/<br>/g, ', ').replace(/"/g, '""');
-                    let cleanSls = row.kdsls_str.replace(/<br>/g, ', ').replace(/"/g, '""');
-                    
-                    let rowArray = [ `"${cleanKec}"`, `"${cleanDesa}"`, `"${cleanSls}"`, `"${cleanUser}"`, row.Open, row.Draft, row.Submit, row.Reject, totalTarget ];
-                    csvContent += rowArray.join(";") + "\n";
-                });
-
-                let activeKec = $('#filterKec').val() || "SemuaKecamatan";
-                let activeDesa = $('#filterDesa').val() || "SemuaDesa";
-                let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-                let link = document.createElement("a");
-                link.href = URL.createObjectURL(blob);
-                link.download = `Rekap_Beban_Kerja_SE2026_${activeKec}_${activeDesa}.csv`;
-                link.style.visibility = 'hidden';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-            });
-        }
-
-        function updateVisuals(data) {
-            let tOpen = 0, tDraft = 0, tSubmit = 0, tReject = 0;
-            data.forEach(r => {
-                tOpen += getGroupedStatus(r, 'Open'); tDraft += getGroupedStatus(r, 'Draft');
-                tSubmit += getGroupedStatus(r, 'Submit'); tReject += getGroupedStatus(r, 'Reject');
-            });
-
-            let tTarget = tOpen + tDraft + tSubmit + tReject;
-            let percent = tTarget === 0 ? 0 : Math.round((tSubmit / tTarget) * 100);
-
-            document.getElementById("valOpen").innerText = tOpen.toLocaleString();
-            document.getElementById("valDraft").innerText = tDraft.toLocaleString();
-            document.getElementById("valSubmit").innerText = tSubmit.toLocaleString();
-            document.getElementById("valReject").innerText = tReject.toLocaleString();
-
-            const pBar = document.getElementById("mainProgressBar");
-            pBar.style.width = percent + "%";
-            pBar.innerText = percent + "% (" + tSubmit.toLocaleString() + " / " + tTarget.toLocaleString() + ")";
-            pBar.className = "progress-bar progress-bar-striped progress-bar-animated " + (percent < 50 ? "bg-warning text-dark" : "progress-bar-se");
-
-            if(donutChart) {
-                donutChart.data.datasets[0].data = [tOpen, tDraft, tSubmit, tReject];
-                donutChart.update();
-            } else {
-                donutChart = new Chart(document.getElementById('donutChart').getContext('2d'), {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Open', 'Draft', 'Submit', 'Rejected'],
-                        datasets: [{
-                            data: [tOpen, tDraft, tSubmit, tReject],
-                            backgroundColor: ['#6c757d', '#F26522', '#198754', '#dc3545'],
-                            borderWidth: 0
-                        }]
-                    },
-                    options: { maintainAspectRatio: false, cutout: '70%', plugins: { legend: { position: 'bottom' } } }
-                });
-            }
-        }
-    </script>
-</body>
-</html>
+                if (kec !== "") filteredData = filtered
