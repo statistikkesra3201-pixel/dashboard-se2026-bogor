@@ -159,7 +159,7 @@
         let dataTable;
         let donutChart;
 
-        Papa.parse("REKAP_SE2026_BOGOR.csv", {
+        Papa.parse("REKAP_SE2026_BOGOR.csv?v=" + new Date().getTime(), {
             download: true,
             header: true,
             dynamicTyping: true,
