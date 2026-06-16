@@ -10,92 +10,32 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        :root {
-            --se-orange: #F26522;
-            --se-orange-light: #fff2ec;
-            --bg-body: #f5f7f9;
-        }
-
-        body { 
-            background-color: var(--bg-body); 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            color: #333;
-        }
-
-        /* Top Header Gradient */
-        .hero-header {
-            background: linear-gradient(135deg, var(--se-orange) 0%, #d9531e 100%);
-            color: white;
-            padding: 2rem 0;
-            border-bottom: 5px solid #343a40;
-            margin-bottom: -40px; 
-        }
-
-        /* Card Styling */
-        .card {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.06);
-            background-color: white;
-            margin-bottom: 20px;
-        }
-        
-        .card-header-se {
-            background-color: transparent;
-            border-bottom: 2px solid var(--bg-body);
-            font-weight: 700;
-            color: #444;
-            padding: 15px 20px;
-        }
-
-        /* Filter Panel */
-        .filter-panel {
-            background-color: white;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.06);
-            position: relative;
-            z-index: 10;
-        }
-        .form-select:focus { border-color: var(--se-orange); box-shadow: 0 0 0 0.25rem rgba(242, 101, 34, 0.25); }
-
-        /* Metric Cards */
-        .metric-card {
-            border-left: 5px solid #ccc;
-            padding: 20px;
-            border-radius: 10px;
-            transition: transform 0.2s;
-        }
+        :root { --se-orange: #F26522; --bg-body: #f5f7f9; }
+        body { background-color: var(--bg-body); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333; }
+        .hero-header { background: linear-gradient(135deg, var(--se-orange) 0%, #d9531e 100%); color: white; padding: 2rem 0; border-bottom: 5px solid #343a40; margin-bottom: -40px; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 5px 15px rgba(0,0,0,0.06); background-color: white; margin-bottom: 20px; }
+        .card-header-se { background-color: transparent; border-bottom: 2px solid var(--bg-body); font-weight: 700; color: #444; padding: 15px 20px; }
+        .filter-panel { background-color: white; border-radius: 12px; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.06); position: relative; z-index: 10; }
+        .metric-card { border-left: 5px solid #ccc; padding: 20px; border-radius: 10px; transition: transform 0.2s; }
         .metric-card:hover { transform: translateY(-3px); }
-        .border-orange { border-left-color: var(--se-orange); }
-        .border-green { border-left-color: #198754; }
-        .border-red { border-left-color: #dc3545; }
-        
         .metric-title { font-size: 0.9rem; font-weight: 600; text-transform: uppercase; color: #6c757d; }
         .metric-value { font-size: 2.2rem; font-weight: 800; color: #2c3e50; margin-bottom: 0; }
         .metric-icon { font-size: 2.5rem; opacity: 0.2; color: #343a40; float: right; margin-top: -10px;}
-
-        /* Main Progress Bar */
         .progress-main { height: 25px; border-radius: 15px; background-color: #e9ecef; }
         .progress-bar-se { background-color: #198754; font-weight: bold; font-size: 1rem; line-height: 25px;}
-
-        /* Table Styling */
         .table-custom th { background-color: #343a40; color: white; border-bottom: 3px solid var(--se-orange) !important; font-size: 0.9rem; }
         .table-custom td { vertical-align: middle; font-size: 0.9rem; }
         .badge { font-size: 0.85rem; padding: 0.4em 0.7em; }
         .badge-draft { background-color: var(--se-orange); color: white; }
+        .text-wrap-custom { max-width: 250px; white-space: normal; }
     </style>
 </head>
 <body>
 
     <div class="hero-header shadow">
         <div class="container-fluid px-4">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h2 class="fw-bold mb-0"><i class="fa-solid fa-chart-line me-2"></i> Dashboard Monitoring SE2026</h2>
-                    <p class="mb-0 text-white-50">Badan Pusat Statistik Kabupaten Bogor</p>
-                </div>
-            </div>
+            <h2 class="fw-bold mb-0"><i class="fa-solid fa-chart-line me-2"></i> Dashboard Monitoring SE2026</h2>
+            <p class="mb-0 text-white-50">Badan Pusat Statistik Kabupaten Bogor</p>
         </div>
     </div>
 
@@ -133,21 +73,21 @@
 
         <div class="row mb-4">
             <div class="col-xl-3 col-md-6 mb-3">
-                <div class="card metric-card border-orange shadow-sm">
+                <div class="card metric-card shadow-sm" style="border-left-color: #F26522;">
                     <i class="fa-solid fa-pen-to-square metric-icon"></i>
                     <div class="metric-title">Draft / Sedang Diedit</div>
                     <h2 id="valDraft" class="metric-value">0</h2>
                 </div>
             </div>
             <div class="col-xl-3 col-md-6 mb-3">
-                <div class="card metric-card border-green shadow-sm">
+                <div class="card metric-card shadow-sm" style="border-left-color: #198754;">
                     <i class="fa-solid fa-check-double metric-icon text-success"></i>
                     <div class="metric-title text-success">Berhasil Submit</div>
                     <h2 id="valSubmit" class="metric-value text-success">0</h2>
                 </div>
             </div>
             <div class="col-xl-3 col-md-6 mb-3">
-                <div class="card metric-card border-red shadow-sm">
+                <div class="card metric-card shadow-sm" style="border-left-color: #dc3545;">
                     <i class="fa-solid fa-triangle-exclamation metric-icon text-danger"></i>
                     <div class="metric-title text-danger">Data Rejected</div>
                     <h2 id="valReject" class="metric-value text-danger">0</h2>
@@ -179,7 +119,7 @@
             <div class="col-xl-9 col-lg-8 mb-4">
                 <div class="card h-100">
                     <div class="card-header-se">
-                        <i class="fa-solid fa-list-check text-se-orange me-1"></i> Rekapitulasi Rincian Beban Kerja Petugas
+                        <i class="fa-solid fa-list-check text-se-orange me-1"></i> Rekapitulasi Beban Kerja Petugas
                     </div>
                     <div class="card-body">
                         <div class="table-responsive">
@@ -194,7 +134,7 @@
                                         <th class="text-center">Draft</th>
                                         <th class="text-center">Submit</th>
                                         <th class="text-center">Reject</th>
-                                        <th class="text-center">Total Target</th>
+                                        <th class="text-center">Target</th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
@@ -236,15 +176,10 @@
 
         function getGroupedStatus(row, kategori) {
             let total = 0;
-            if (kategori === 'Open') {
-                total = parseInt(row['OPEN'] || 0) + parseInt(row['Open'] || 0);
-            } else if (kategori === 'Draft') {
-                total = parseInt(row['DRAFT'] || 0) + parseInt(row['EDITED BY Pengawas'] || 0) + parseInt(row['Draft'] || 0);
-            } else if (kategori === 'Submit') {
-                total = parseInt(row['SUBMITTED BY Pencacah'] || 0) + parseInt(row['SUBMITTED RESPONDENT'] || 0) + parseInt(row['APPROVED BY Pengawas'] || 0) + parseInt(row['Submit'] || 0);
-            } else if (kategori === 'Reject') {
-                total = parseInt(row['REJECTED BY Pengawas'] || 0) + parseInt(row['REVOKED BY Pengawas'] || 0) + parseInt(row['Rejected'] || 0);
-            }
+            if (kategori === 'Open') total = parseInt(row['OPEN'] || 0) + parseInt(row['Open'] || 0);
+            else if (kategori === 'Draft') total = parseInt(row['DRAFT'] || 0) + parseInt(row['EDITED BY Pengawas'] || 0) + parseInt(row['Draft'] || 0);
+            else if (kategori === 'Submit') total = parseInt(row['SUBMITTED BY Pencacah'] || 0) + parseInt(row['SUBMITTED RESPONDENT'] || 0) + parseInt(row['APPROVED BY Pengawas'] || 0) + parseInt(row['Submit'] || 0);
+            else if (kategori === 'Reject') total = parseInt(row['REJECTED BY Pengawas'] || 0) + parseInt(row['REVOKED BY Pengawas'] || 0) + parseInt(row['Rejected'] || 0);
             return isNaN(total) ? 0 : total;
         }
 
@@ -257,20 +192,34 @@
                 let key = kecPad + "_" + userName; 
                 
                 if (!grouped[key]) {
+                    // Menyimpan format Kecamatan yang rapi
+                    let nmkecTampil = (row.nmkec && row.nmkec !== 'TANPA NAMA KEC') ? `[${kecPad}] ${row.nmkec}` : `[${kecPad}]`;
+                    
                     grouped[key] = {
-                        kdkec: kecPad,
-                        kddesa_set: new Set(),
+                        kdkec_raw: kecPad, // Untuk keperluan filter logic
+                        kdkec_tampil: nmkecTampil,
+                        kddesa_set: new Set(), 
                         kdsls_set: new Set(),
-                        user: userName,
-                        Open: 0, Draft: 0, Submit: 0, Reject: 0
+                        user: userName, Open: 0, Draft: 0, Submit: 0, Reject: 0
                     };
                 }
                 
-                if (row.kddesa) grouped[key].kddesa_set.add(padZero(row.kddesa, 3));
+                // Format Desa yang rapi
+                if (row.kddesa) {
+                    let desaPad = padZero(row.kddesa, 3);
+                    let nmdesaTampil = (row.nmdesa && row.nmdesa !== 'TANPA NAMA DESA') ? `[${desaPad}] ${row.nmdesa}` : `[${desaPad}]`;
+                    grouped[key].kddesa_set.add(nmdesaTampil);
+                }
+                
                 if (row.kdsls) {
-    let namaSls = (row.nmsls && row.nmsls !== 'TANPA SLS') ? ` - ${row.nmsls}` : ' - TANPA SLS';
-    grouped[key].kdsls_set.add(padZero(row.kdsls, 4) + namaSls);
-}
+                    let namaSls = "";
+                    if (row.nmsls && String(row.nmsls).trim() !== "" && String(row.nmsls).trim() !== "TANPA SLS") {
+                        namaSls = ` - ${String(row.nmsls).trim()}`;
+                    } else {
+                        namaSls = ` - TANPA SLS`;
+                    }
+                    grouped[key].kdsls_set.add(padZero(row.kdsls, 4) + namaSls);
+                }
                 
                 grouped[key].Open += getGroupedStatus(row, 'Open');
                 grouped[key].Draft += getGroupedStatus(row, 'Draft');
@@ -280,80 +229,73 @@
             
             return Object.values(grouped).map(item => {
                 return {
-                    kdkec: item.kdkec,
-                    kddesa_str: Array.from(item.kddesa_set).sort().join(', '),
-                    kdsls_str: Array.from(item.kdsls_set).sort().join(', '),
-                    user: item.user,
-                    Open: item.Open,
-                    Draft: item.Draft,
-                    Submit: item.Submit,
-                    Reject: item.Reject
+                    kdkec_raw: item.kdkec_raw,
+                    kdkec_tampil: item.kdkec_tampil,
+                    kddesa_str: Array.from(item.kddesa_set).sort().join('<br>'),
+                    kdsls_str: Array.from(item.kdsls_set).sort().join('<br>'),
+                    user: item.user, Open: item.Open, Draft: item.Draft, Submit: item.Submit, Reject: item.Reject
                 };
             });
         }
 
         function initDashboard() {
-            const kecSet = new Set(globalData.map(item => padZero(item.kdkec, 3)));
+            // Membangun Dropdown Filter Kecamatan
             const filterKec = document.getElementById("filterKec");
-            Array.from(kecSet).sort().forEach(kec => {
-                filterKec.appendChild(new Option("Kecamatan " + kec, kec));
+            const kecMap = new Map();
+            globalData.forEach(d => {
+                if (d.kdkec) {
+                    let k = padZero(d.kdkec, 3);
+                    let n = (d.nmkec && d.nmkec !== 'TANPA NAMA KEC') ? d.nmkec : '';
+                    kecMap.set(k, n ? `[${k}] ${n}` : `[${k}]`);
+                }
             });
-
-            const initialAggregatedData = aggregateByPetugas(globalData);
+            Array.from(kecMap.keys()).sort().forEach(k => { filterKec.appendChild(new Option(kecMap.get(k), k)); });
 
             dataTable = $('#dataTable').DataTable({
-                data: initialAggregatedData,
+                data: aggregateByPetugas(globalData),
                 columns: [
-                    { data: 'kdkec' },
-                    { data: 'kddesa_str' },
-                    { data: 'kdsls_str' },
+                    { data: 'kdkec_tampil' },
+                    { data: 'kddesa_str', className: 'text-wrap-custom' },
+                    { data: 'kdsls_str', className: 'text-wrap-custom' }, 
                     { data: 'user', render: data => `<strong class="text-primary">${data}</strong>` },
                     { data: 'Open', className: 'text-center', render: data => `<span class="badge bg-secondary">${data}</span>` },
                     { data: 'Draft', className: 'text-center', render: data => `<span class="badge badge-draft">${data}</span>` },
                     { data: 'Submit', className: 'text-center', render: data => `<span class="badge bg-success">${data}</span>` },
                     { data: 'Reject', className: 'text-center', render: data => data > 0 ? `<span class="badge bg-danger">${data}</span>` : `<span class="badge text-muted">0</span>` },
-                    { 
-                        data: null, 
-                        className: 'text-center fw-bold',
-                        render: function(data, type, row) {
-                            return row.Open + row.Draft + row.Submit + row.Reject;
-                        }
-                    }
+                    { data: null, className: 'text-center fw-bold', render: (data, type, row) => row.Open + row.Draft + row.Submit + row.Reject }
                 ],
                 pageLength: 10,
                 order: [[6, "asc"]], 
-                language: { search: "Cari Data:", lengthMenu: "Tampil _MENU_ data", info: "Menampilkan _START_ - _END_ dari _TOTAL_ petugas" }
+                language: { search: "Cari Data:", lengthMenu: "Tampil _MENU_", info: "Menampilkan _START_ - _END_ dari _TOTAL_ petugas" }
             });
 
             updateVisuals(globalData);
 
-            // Event Filter
             $('#filterKec, #filterDesa').on('change', function() {
                 const kec = $('#filterKec').val();
                 const filterDesa = document.getElementById("filterDesa");
                 
                 if (this.id === 'filterKec') {
                     filterDesa.innerHTML = '<option value="">-- Semua Desa --</option>';
-                    if (kec === "") {
-                        filterDesa.disabled = true;
-                    } else {
+                    if (kec === "") filterDesa.disabled = true;
+                    else {
                         filterDesa.disabled = false;
-                        const desaSet = new Set(globalData.filter(d => padZero(d.kdkec, 3) === kec).map(d => padZero(d.kddesa, 3)));
-                        Array.from(desaSet).sort().forEach(desa => {
-                            if(desa) filterDesa.appendChild(new Option("Desa " + desa, desa));
+                        const desaMap = new Map();
+                        globalData.filter(d => padZero(d.kdkec, 3) === kec).forEach(d => {
+                            if (d.kddesa) {
+                                let k = padZero(d.kddesa, 3);
+                                let n = (d.nmdesa && d.nmdesa !== 'TANPA NAMA DESA') ? d.nmdesa : '';
+                                desaMap.set(k, n ? `[${k}] ${n}` : `[${k}]`);
+                            }
                         });
+                        Array.from(desaMap.keys()).sort().forEach(k => { filterDesa.appendChild(new Option(desaMap.get(k), k)); });
                     }
                 }
 
                 const desa = $('#filterDesa').val();
                 let filteredData = globalData;
-
-                if (kec !== "") {
-                    filteredData = filteredData.filter(d => padZero(d.kdkec, 3) === kec);
-                }
-                if (desa !== "") {
-                    filteredData = filteredData.filter(d => padZero(d.kddesa, 3) === desa);
-                }
+                if (kec !== "") filteredData = filteredData.filter(d => padZero(d.kdkec, 3) === kec);
+                if (desa !== "") filteredData = filteredData.filter(d => padZero(d.kddesa, 3) === desa);
 
                 dataTable.clear().rows.add(aggregateByPetugas(filteredData)).draw();
                 updateVisuals(filteredData);
@@ -361,51 +303,28 @@
 
             $('#btnReset').click(function() { $('#filterKec').val('').trigger('change'); });
 
-            // 🔥 LOGIKA UNDUH CSV DINAMIS (Sesuai Filter & Pencarian yang Aktif)
             $('#btnDownload').click(function() {
-                // Mengambil data yang *saat ini tampil* di DataTables (termasuk hasil filter/search)
                 let currentData = dataTable.rows({ search: 'applied' }).data().toArray();
-                
-                if (currentData.length === 0) {
-                    alert("Tidak ada data untuk diunduh!");
-                    return;
-                }
+                if (currentData.length === 0) return alert("Tidak ada data untuk diunduh!");
 
-                // Header CSV menggunakan pemisah titik koma (agar bersahabat dengan Excel Indonesia)
                 let csvContent = "Kecamatan;Desa (Gabungan);SLS (Gabungan);Petugas;Open;Draft;Submit;Reject;Total Target\n";
-
                 currentData.forEach(row => {
                     let totalTarget = row.Open + row.Draft + row.Submit + row.Reject;
-                    
-                    // Bersihkan teks nama jika ada spasi berlebih
                     let cleanUser = row.user.replace(/"/g, '""'); 
-
-                    let rowArray = [
-                        row.kdkec,
-                        `"${row.kddesa_str}"`, // Dibungkus kutip karena mengandung koma (gabungan desa)
-                        `"${row.kdsls_str}"`,
-                        `"${cleanUser}"`,
-                        row.Open,
-                        row.Draft,
-                        row.Submit,
-                        row.Reject,
-                        totalTarget
-                    ];
+                    let cleanKec = row.kdkec_tampil.replace(/"/g, '""'); 
+                    let cleanDesa = row.kddesa_str.replace(/<br>/g, ', ').replace(/"/g, '""');
+                    let cleanSls = row.kdsls_str.replace(/<br>/g, ', ').replace(/"/g, '""');
                     
+                    let rowArray = [ `"${cleanKec}"`, `"${cleanDesa}"`, `"${cleanSls}"`, `"${cleanUser}"`, row.Open, row.Draft, row.Submit, row.Reject, totalTarget ];
                     csvContent += rowArray.join(";") + "\n";
                 });
 
-                // Penamaan File Dinamis berdasarkan filter
                 let activeKec = $('#filterKec').val() || "SemuaKecamatan";
                 let activeDesa = $('#filterDesa').val() || "SemuaDesa";
-                let fileName = `Rekap_Beban_Kerja_SE2026_${activeKec}_${activeDesa}.csv`;
-
-                // Proses Eksekusi Download di Browser
                 let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
                 let link = document.createElement("a");
-                let url = URL.createObjectURL(blob);
-                link.setAttribute("href", url);
-                link.setAttribute("download", fileName);
+                link.href = URL.createObjectURL(blob);
+                link.download = `Rekap_Beban_Kerja_SE2026_${activeKec}_${activeDesa}.csv`;
                 link.style.visibility = 'hidden';
                 document.body.appendChild(link);
                 link.click();
@@ -416,10 +335,8 @@
         function updateVisuals(data) {
             let tOpen = 0, tDraft = 0, tSubmit = 0, tReject = 0;
             data.forEach(r => {
-                tOpen += getGroupedStatus(r, 'Open');
-                tDraft += getGroupedStatus(r, 'Draft');
-                tSubmit += getGroupedStatus(r, 'Submit');
-                tReject += getGroupedStatus(r, 'Reject');
+                tOpen += getGroupedStatus(r, 'Open'); tDraft += getGroupedStatus(r, 'Draft');
+                tSubmit += getGroupedStatus(r, 'Submit'); tReject += getGroupedStatus(r, 'Reject');
             });
 
             let tTarget = tOpen + tDraft + tSubmit + tReject;
@@ -439,8 +356,7 @@
                 donutChart.data.datasets[0].data = [tOpen, tDraft, tSubmit, tReject];
                 donutChart.update();
             } else {
-                const ctx = document.getElementById('donutChart').getContext('2d');
-                donutChart = new Chart(ctx, {
+                donutChart = new Chart(document.getElementById('donutChart').getContext('2d'), {
                     type: 'doughnut',
                     data: {
                         labels: ['Open', 'Draft', 'Submit', 'Rejected'],
