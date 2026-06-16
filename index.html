@@ -142,7 +142,7 @@
                                         <th>Submit</th>
                                         <th>Apprv</th>
                                         <th>Reject</th>
-                                        <th>Target</th>
+                                        <th>Total Dikerjakan</th>
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
@@ -182,28 +182,19 @@
             return s;
         }
 
-        // 🔥 LOGIKA SUPER KETAT: Memisahkan beban kerja Pencacah & Pengawas
         function getGroupedStatus(row, kategori, userName) {
             let total = 0;
-            // Deteksi apakah baris ini milik Pengawas
             let isPengawas = String(userName).toLowerCase().includes('pengawas');
 
-            // ATURAN 1: Pengawas HANYA terisi kalau Approved dan Rejected (Open, Draft, Submit = 0)
             if (isPengawas && (kategori === 'Open' || kategori === 'Draft' || kategori === 'Submit')) {
                 return 0;
             }
 
-            if (kategori === 'Open') {
-                total = parseInt(row['OPEN'] || 0) + parseInt(row['Open'] || 0);
-            } else if (kategori === 'Draft') {
-                total = parseInt(row['DRAFT'] || 0) + parseInt(row['EDITED BY Pengawas'] || 0) + parseInt(row['Draft'] || 0);
-            } else if (kategori === 'Submit') {
-                total = parseInt(row['SUBMITTED BY Pencacah'] || 0) + parseInt(row['SUBMITTED RESPONDENT'] || 0) + parseInt(row['Submit'] || 0);
-            } else if (kategori === 'Approved') {
-                total = parseInt(row['APPROVED BY Pengawas'] || 0) + parseInt(row['Approved'] || 0);
-            } else if (kategori === 'Reject') {
-                total = parseInt(row['REJECTED BY Pengawas'] || 0) + parseInt(row['REVOKED BY Pengawas'] || 0) + parseInt(row['Rejected'] || 0);
-            }
+            if (kategori === 'Open') total = parseInt(row['OPEN'] || 0) + parseInt(row['Open'] || 0);
+            else if (kategori === 'Draft') total = parseInt(row['DRAFT'] || 0) + parseInt(row['EDITED BY Pengawas'] || 0) + parseInt(row['Draft'] || 0);
+            else if (kategori === 'Submit') total = parseInt(row['SUBMITTED BY Pencacah'] || 0) + parseInt(row['SUBMITTED RESPONDENT'] || 0) + parseInt(row['Submit'] || 0);
+            else if (kategori === 'Approved') total = parseInt(row['APPROVED BY Pengawas'] || 0) + parseInt(row['Approved'] || 0);
+            else if (kategori === 'Reject') total = parseInt(row['REJECTED BY Pengawas'] || 0) + parseInt(row['REVOKED BY Pengawas'] || 0) + parseInt(row['Rejected'] || 0);
             
             return isNaN(total) ? 0 : total;
         }
@@ -211,11 +202,34 @@
         function aggregateByPetugas(dataArray) {
             let grouped = {};
             
+            // 🌟 LANGKAH 1: Buat peta alokasi SLS ke nama Pencacah
+            let slsToPencacah = {};
+            dataArray.forEach(row => {
+                let uName = row.user || "";
+                if (uName.toLowerCase().includes('pencacah')) {
+                    let slsKey = padZero(row.kdkec, 3) + "_" + padZero(row.kddesa, 3) + "_" + padZero(row.kdsls, 4);
+                    slsToPencacah[slsKey] = uName;
+                }
+            });
+            
+            // 🌟 LANGKAH 2: Akumulasi data dengan logika sinkronisasi baru
             dataArray.forEach(row => {
                 let kecPad = padZero(row.kdkec, 3);
-                let userName = row.user || "Unknown";
-                let key = kecPad + "_" + userName; 
+                let desaPad = padZero(row.kddesa, 3);
+                let slsPad = padZero(row.kdsls, 4);
+                let slsKey = kecPad + "_" + desaPad + "_" + slsPad;
                 
+                let userName = row.user || "Unknown";
+                let isPengawas = userName.toLowerCase().includes('pengawas');
+                
+                let openVal = getGroupedStatus(row, 'Open', userName);
+                let draftVal = getGroupedStatus(row, 'Draft', userName);
+                let submitVal = getGroupedStatus(row, 'Submit', userName);
+                let appVal = getGroupedStatus(row, 'Approved', userName);
+                let rejectVal = getGroupedStatus(row, 'Reject', userName);
+                
+                // Masukkan data ke pemilik baris asli (Pencacah atau Pengawas itu sendiri)
+                let key = kecPad + "_" + userName; 
                 if (!grouped[key]) {
                     let nmkecTampil = (row.nmkec && row.nmkec !== 'TANPA NAMA KEC') ? `[${kecPad}] ${row.nmkec}` : `[${kecPad}]`;
                     grouped[key] = {
@@ -224,28 +238,35 @@
                         user: userName, Open: 0, Draft: 0, Submit: 0, Approved: 0, Reject: 0
                     };
                 }
+                if (row.kddesa) grouped[key].kddesa_set.add((row.nmdesa && row.nmdesa !== 'TANPA NAMA DESA') ? `[${desaPad}] ${row.nmdesa}` : `[${desaPad}]`);
+                if (row.kdsls) grouped[key].kdsls_set.add(slsPad + ((row.nmsls && String(row.nmsls).trim() !== "" && String(row.nmsls).trim() !== "TANPA SLS") ? ` - ${String(row.nmsls).trim()}` : ` - TANPA SLS`));
                 
-                if (row.kddesa) {
-                    let desaPad = padZero(row.kddesa, 3);
-                    let nmdesaTampil = (row.nmdesa && row.nmdesa !== 'TANPA NAMA DESA') ? `[${desaPad}] ${row.nmdesa}` : `[${desaPad}]`;
-                    grouped[key].kddesa_set.add(nmdesaTampil);
-                }
+                grouped[key].Open += openVal;
+                grouped[key].Draft += draftVal;
+                grouped[key].Submit += submitVal;
+                grouped[key].Approved += appVal;
+                grouped[key].Reject += rejectVal;
                 
-                if (row.kdsls) {
-                    let namaSls = "";
-                    if (row.nmsls && String(row.nmsls).trim() !== "" && String(row.nmsls).trim() !== "TANPA SLS") {
-                        namaSls = ` - ${String(row.nmsls).trim()}`;
-                    } else {
-                        namaSls = ` - TANPA SLS`;
+                // 🔥 SINKRONISASI: Jika ini baris Pengawas, tambahkan nilai Apprv & Reject ke Pencacah SLS ini
+                if (isPengawas) {
+                    let pencacahAsosiasi = slsToPencacah[slsKey];
+                    if (pencacahAsosiasi) {
+                        let keyPcl = kecPad + "_" + pencacahAsosiasi;
+                        if (!grouped[keyPcl]) {
+                            let nmkecTampil = (row.nmkec && row.nmkec !== 'TANPA NAMA KEC') ? `[${kecPad}] ${row.nmkec}` : `[${kecPad}]`;
+                            grouped[keyPcl] = {
+                                kdkec_raw: kecPad, kdkec_tampil: nmkecTampil,
+                                kddesa_set: new Set(), kdsls_set: new Set(),
+                                user: pencacahAsosiasi, Open: 0, Draft: 0, Submit: 0, Approved: 0, Reject: 0
+                            };
+                        }
+                        if (row.kddesa) grouped[keyPcl].kddesa_set.add((row.nmdesa && row.nmdesa !== 'TANPA NAMA DESA') ? `[${desaPad}] ${row.nmdesa}` : `[${desaPad}]`);
+                        if (row.kdsls) grouped[keyPcl].kdsls_set.add(slsPad + ((row.nmsls && String(row.nmsls).trim() !== "" && String(row.nmsls).trim() !== "TANPA SLS") ? ` - ${String(row.nmsls).trim()}` : ` - TANPA SLS`));
+                        
+                        grouped[keyPcl].Approved += appVal;
+                        grouped[keyPcl].Reject += rejectVal;
                     }
-                    grouped[key].kdsls_set.add(padZero(row.kdsls, 4) + namaSls);
                 }
-                
-                grouped[key].Open += getGroupedStatus(row, 'Open', userName);
-                grouped[key].Draft += getGroupedStatus(row, 'Draft', userName);
-                grouped[key].Submit += getGroupedStatus(row, 'Submit', userName);
-                grouped[key].Approved += getGroupedStatus(row, 'Approved', userName);
-                grouped[key].Reject += getGroupedStatus(row, 'Reject', userName);
             });
             
             return Object.values(grouped).map(item => {
@@ -283,10 +304,22 @@
                     { data: 'Submit', className: 'text-center', render: data => `<span class="badge bg-primary">${data}</span>` },
                     { data: 'Approved', className: 'text-center', render: data => `<span class="badge bg-success">${data}</span>` },
                     { data: 'Reject', className: 'text-center', render: data => data > 0 ? `<span class="badge bg-danger">${data}</span>` : `<span class="badge text-muted">0</span>` },
-                    { data: null, className: 'text-center fw-bold', render: (data, type, row) => row.Open + row.Draft + row.Submit + row.Approved + row.Reject }
+                    // 🌟 REKAYASA KOLOM TOTAL DIKERJAKAN
+                    { 
+                        data: null, 
+                        className: 'text-center fw-bold', 
+                        render: (data, type, row) => {
+                            let isPgw = String(row.user).toLowerCase().includes('pengawas');
+                            if (isPgw) {
+                                return row.Approved + row.Reject; // Pengawas: Approved + Reject
+                            } else {
+                                return row.Draft + row.Submit + row.Approved + row.Reject; // Pencacah: Selain Open
+                            }
+                        } 
+                    }
                 ],
                 pageLength: 10,
-                order: [[8, "asc"]], 
+                order: [[6, "asc"]], 
                 language: { search: "Cari Data:", lengthMenu: "Tampil _MENU_", info: "Menampilkan _START_ - _END_ dari _TOTAL_ petugas" }
             });
 
@@ -324,6 +357,7 @@
 
             $('#btnReset').click(function() { $('#filterKec').val('').trigger('change'); });
 
+            // 🌟 OPSI UNDUH: FORMAT RINCIAN SLS DENGAN SYNC BARU & KOLOM "TOTAL DIKERJAKAN"
             $('#btnDownload').click(function() {
                 const kec = $('#filterKec').val();
                 const desa = $('#filterDesa').val();
@@ -343,39 +377,60 @@
                     });
                 }
 
-                if (filteredRaw.length === 0) return alert("Tidak ada data rincian SLS yang cocok untuk diunduh!");
+                if (filteredRaw.length === 0) return alert("Tidak ada data rincian SLS yang cocok!");
 
-                // Header CSV Update (Ada Kolom Approved)
-                let csvRows = ["Kode Kecamatan;Nama Kecamatan;Kode Desa;Nama Desa;Kode SLS;Nama SLS;Nama Petugas;Open;Draft;Submit;Approved;Reject;Total Target"];
+                // Petakan kontribusi Pengawas untuk disuntikkan ke rincian Pencacah di CSV
+                let pgwMap = {};
+                filteredRaw.forEach(row => {
+                    if (String(row.user).toLowerCase().includes('pengawas')) {
+                        let skey = padZero(row.kdkec, 3) + "_" + padZero(row.kddesa, 3) + "_" + padZero(row.kdsls, 4);
+                        if (!pgwMap[skey]) pgwMap[skey] = { Approved: 0, Reject: 0 };
+                        pgwMap[skey].Approved += getGroupedStatus(row, 'Approved', row.user);
+                        pgwMap[skey].Reject += getGroupedStatus(row, 'Reject', row.user);
+                    }
+                });
+
+                let csvRows = ["Kode Kecamatan;Nama Kecamatan;Kode Desa;Nama Desa;Kode SLS;Nama SLS;Nama Petugas;Open;Draft;Submit;Approved;Reject;Total Dikerjakan"];
                 
                 for (let i = 0; i < filteredRaw.length; i++) {
                     let row = filteredRaw[i];
-                    let openVal = getGroupedStatus(row, 'Open', row.user);
-                    let draftVal = getGroupedStatus(row, 'Draft', row.user);
-                    let submitVal = getGroupedStatus(row, 'Submit', row.user);
-                    let appVal = getGroupedStatus(row, 'Approved', row.user);
-                    let rejectVal = getGroupedStatus(row, 'Reject', row.user);
-                    let totalTarget = openVal + draftVal + submitVal + appVal + rejectVal;
+                    let uName = row.user || "";
+                    let isPgw = uName.toLowerCase().includes('pengawas');
+                    let isPcl = uName.toLowerCase().includes('pencacah');
 
-                    let cleanUser = (row.user || "").replace(/"/g, '""');
+                    let openVal = getGroupedStatus(row, 'Open', uName);
+                    let draftVal = getGroupedStatus(row, 'Draft', uName);
+                    let submitVal = getGroupedStatus(row, 'Submit', uName);
+                    let appVal = getGroupedStatus(row, 'Approved', uName);
+                    let rejectVal = getGroupedStatus(row, 'Reject', uName);
+
+                    if (isPcl) {
+                        let skey = padZero(row.kdkec, 3) + "_" + padZero(row.kddesa, 3) + "_" + padZero(row.kdsls, 4);
+                        if (pgwMap[skey]) {
+                            appVal += pgwMap[skey].Approved;
+                            rejectVal += pgwMap[skey].Reject;
+                        }
+                    }
+
+                    // Tentukan rumus hitung total dikerjakan dinamis per role
+                    let totalDikerjakan = isPgw ? (appVal + rejectVal) : (draftVal + submitVal + appVal + rejectVal);
+
+                    let cleanUser = uName.replace(/"/g, '""');
                     let cleanKec = (row.nmkec || "TANPA NAMA KEC").replace(/"/g, '""');
                     let cleanDesa = (row.nmdesa || "TANPA NAMA DESA").replace(/"/g, '""');
                     let cleanSls = (row.nmsls || "TANPA SLS").replace(/"/g, '""');
 
                     csvRows.push([
-                        padZero(row.kdkec, 3), `"${cleanKec}"`,
-                        padZero(row.kddesa, 3), `"${cleanDesa}"`,
-                        padZero(row.kdsls, 4), `"${cleanSls}"`,
-                        `"${cleanUser}"`, openVal, draftVal, submitVal, appVal, rejectVal, totalTarget
+                        padZero(row.kdkec, 3), `"${cleanKec}"`, padZero(row.kddesa, 3), `"${cleanDesa}"`,
+                        padZero(row.kdsls, 4), `"${cleanSls}"`, `"${cleanUser}"`,
+                        openVal, draftVal, submitVal, appVal, rejectVal, totalDikerjakan
                     ].join(";"));
                 }
 
-                let activeKec = kec || "SemuaKecamatan";
-                let activeDesa = desa || "SemuaDesa";
                 let blob = new Blob([csvRows.join("\n")], { type: 'text/csv;charset=utf-8;' });
                 let link = document.createElement("a");
                 link.href = URL.createObjectURL(blob);
-                link.download = `Rincian_Lengkap_SLS_SE2026_${activeKec}_${activeDesa}.csv`;
+                link.download = `Rincian_Lengkap_SLS_SE2026_${kec || "SemuaKecamatan"}_${desa || "SemuaDesa"}.csv`;
                 link.style.visibility = 'hidden';
                 document.body.appendChild(link);
                 link.click();
@@ -385,12 +440,33 @@
 
         function updateVisuals(data) {
             let tOpen = 0, tDraft = 0, tSubmit = 0, tApprove = 0, tReject = 0;
+            
+            // Peta lokal khusus untuk menghitung ekosistem makro di panel kartu atas agar akurat
+            let pgwMacro = {};
             data.forEach(r => {
-                tOpen += getGroupedStatus(r, 'Open', r.user); 
-                tDraft += getGroupedStatus(r, 'Draft', r.user);
-                tSubmit += getGroupedStatus(r, 'Submit', r.user); 
-                tApprove += getGroupedStatus(r, 'Approved', r.user);
-                tReject += getGroupedStatus(r, 'Reject', r.user);
+                if (String(r.user).toLowerCase().includes('pengawas')) {
+                    let skey = padZero(r.kdkec, 3) + "_" + padZero(r.kddesa, 3) + "_" + padZero(r.kdsls, 4);
+                    if (!pgwMacro[skey]) pgwMacro[skey] = { Approved: 0, Reject: 0 };
+                    pgwMacro[skey].Approved += getGroupedStatus(r, 'Approved', r.user);
+                    pgwMacro[skey].Reject += getGroupedStatus(r, 'Reject', r.user);
+                }
+            });
+
+            data.forEach(r => {
+                let uName = r.user || "";
+                tOpen += getGroupedStatus(r, 'Open', uName); 
+                tDraft += getGroupedStatus(r, 'Draft', uName);
+                tSubmit += getGroupedStatus(r, 'Submit', uName); 
+                tApprove += getGroupedStatus(r, 'Approved', uName);
+                tReject += getGroupedStatus(r, 'Reject', uName);
+                
+                if (uName.toLowerCase().includes('pencacah')) {
+                    let skey = padZero(r.kdkec, 3) + "_" + padZero(r.kddesa, 3) + "_" + padZero(r.kdsls, 4);
+                    if (pgwMacro[skey]) {
+                        tApprove += pgwMacro[skey].Approved;
+                        tReject += pgwMacro[skey].Reject;
+                    }
+                }
             });
 
             let tTarget = tOpen + tDraft + tSubmit + tApprove + tReject;
@@ -409,9 +485,7 @@
             pBar.className = "progress-bar progress-bar-striped progress-bar-animated " + (percent < 50 ? "bg-warning text-dark" : "progress-bar-se");
 
             if(donutChart) {
-                donutChart.data.labels = ['Open', 'Draft', 'Submit', 'Approved', 'Rejected'];
                 donutChart.data.datasets[0].data = [tOpen, tDraft, tSubmit, tApprove, tReject];
-                donutChart.data.datasets[0].backgroundColor = ['#6c757d', '#F26522', '#0d6efd', '#198754', '#dc3545'];
                 donutChart.update();
             } else {
                 donutChart = new Chart(document.getElementById('donutChart').getContext('2d'), {
