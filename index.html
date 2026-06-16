@@ -95,9 +95,6 @@
                     <h2 class="fw-bold mb-0"><i class="fa-solid fa-chart-line me-2"></i> Dashboard Monitoring SE2026</h2>
                     <p class="mb-0 text-white-50">Badan Pusat Statistik Kabupaten Bogor</p>
                 </div>
-                <div class="text-end d-none d-md-block">
-                    <span class="badge bg-light text-dark fs-6 px-3 py-2"><i class="fa-solid fa-circle-dot text-success me-1"></i> Live Status</span>
-                </div>
             </div>
         </div>
     </div>
@@ -106,13 +103,13 @@
         
         <div class="filter-panel mb-4">
             <div class="row align-items-end">
-                <div class="col-md-5">
+                <div class="col-md-4">
                     <label class="fw-bold text-muted mb-1"><i class="fa-solid fa-map-location-dot me-1"></i> Kecamatan</label>
                     <select id="filterKec" class="form-select form-select-lg">
                         <option value="">-- Semua Kecamatan --</option>
                     </select>
                 </div>
-                <div class="col-md-5 mt-3 mt-md-0">
+                <div class="col-md-4 mt-3 mt-md-0">
                     <label class="fw-bold text-muted mb-1"><i class="fa-solid fa-building me-1"></i> Desa/Kelurahan</label>
                     <select id="filterDesa" class="form-select form-select-lg" disabled>
                         <option value="">-- Semua Desa --</option>
@@ -120,6 +117,9 @@
                 </div>
                 <div class="col-md-2 mt-3 mt-md-0">
                     <button id="btnReset" class="btn btn-outline-secondary btn-lg w-100"><i class="fa-solid fa-rotate-right me-1"></i> Reset</button>
+                </div>
+                <div class="col-md-2 mt-3 mt-md-0">
+                    <button id="btnDownload" class="btn btn-success btn-lg w-100 shadow-sm"><i class="fa-solid fa-file-excel me-1"></i> Unduh Data</button>
                 </div>
             </div>
         </div>
@@ -234,7 +234,6 @@
             return s;
         }
 
-        // Pengelompokan status kategori dari JSON Fasih
         function getGroupedStatus(row, kategori) {
             let total = 0;
             if (kategori === 'Open') {
@@ -249,14 +248,13 @@
             return isNaN(total) ? 0 : total;
         }
 
-        // 🔥 FUNGSI BARU: Mengelompokkan baris berdasarkan Petugas agar tidak muncul ganda
         function aggregateByPetugas(dataArray) {
             let grouped = {};
             
             dataArray.forEach(row => {
                 let kecPad = padZero(row.kdkec, 3);
                 let userName = row.user || "Unknown";
-                let key = kecPad + "_" + userName; // Unique Key: Kecamatan + Nama Petugas
+                let key = kecPad + "_" + userName; 
                 
                 if (!grouped[key]) {
                     grouped[key] = {
@@ -277,7 +275,6 @@
                 grouped[key].Reject += getGroupedStatus(row, 'Reject');
             });
             
-            // Konversi kembali dari Objek menjadi Array agar bisa dibaca DataTables
             return Object.values(grouped).map(item => {
                 return {
                     kdkec: item.kdkec,
@@ -299,7 +296,6 @@
                 filterKec.appendChild(new Option("Kecamatan " + kec, kec));
             });
 
-            // Agregasi Data Awal
             const initialAggregatedData = aggregateByPetugas(globalData);
 
             dataTable = $('#dataTable').DataTable({
@@ -322,7 +318,7 @@
                     }
                 ],
                 pageLength: 10,
-                order: [[6, "asc"]], // Urutkan default dari Submit terkecil
+                order: [[6, "asc"]], 
                 language: { search: "Cari Data:", lengthMenu: "Tampil _MENU_ data", info: "Menampilkan _START_ - _END_ dari _TOTAL_ petugas" }
             });
 
@@ -333,7 +329,6 @@
                 const kec = $('#filterKec').val();
                 const filterDesa = document.getElementById("filterDesa");
                 
-                // Update dropdown desa jika yang diubah adalah filter kecamatan
                 if (this.id === 'filterKec') {
                     filterDesa.innerHTML = '<option value="">-- Semua Desa --</option>';
                     if (kec === "") {
@@ -357,12 +352,62 @@
                     filteredData = filteredData.filter(d => padZero(d.kddesa, 3) === desa);
                 }
 
-                // Hapus isi tabel lama, masukkan data teragregasi yang baru
                 dataTable.clear().rows.add(aggregateByPetugas(filteredData)).draw();
                 updateVisuals(filteredData);
             });
 
             $('#btnReset').click(function() { $('#filterKec').val('').trigger('change'); });
+
+            // 🔥 LOGIKA UNDUH CSV DINAMIS (Sesuai Filter & Pencarian yang Aktif)
+            $('#btnDownload').click(function() {
+                // Mengambil data yang *saat ini tampil* di DataTables (termasuk hasil filter/search)
+                let currentData = dataTable.rows({ search: 'applied' }).data().toArray();
+                
+                if (currentData.length === 0) {
+                    alert("Tidak ada data untuk diunduh!");
+                    return;
+                }
+
+                // Header CSV menggunakan pemisah titik koma (agar bersahabat dengan Excel Indonesia)
+                let csvContent = "Kecamatan;Desa (Gabungan);SLS (Gabungan);Petugas;Open;Draft;Submit;Reject;Total Target\n";
+
+                currentData.forEach(row => {
+                    let totalTarget = row.Open + row.Draft + row.Submit + row.Reject;
+                    
+                    // Bersihkan teks nama jika ada spasi berlebih
+                    let cleanUser = row.user.replace(/"/g, '""'); 
+
+                    let rowArray = [
+                        row.kdkec,
+                        `"${row.kddesa_str}"`, // Dibungkus kutip karena mengandung koma (gabungan desa)
+                        `"${row.kdsls_str}"`,
+                        `"${cleanUser}"`,
+                        row.Open,
+                        row.Draft,
+                        row.Submit,
+                        row.Reject,
+                        totalTarget
+                    ];
+                    
+                    csvContent += rowArray.join(";") + "\n";
+                });
+
+                // Penamaan File Dinamis berdasarkan filter
+                let activeKec = $('#filterKec').val() || "SemuaKecamatan";
+                let activeDesa = $('#filterDesa').val() || "SemuaDesa";
+                let fileName = `Rekap_Beban_Kerja_SE2026_${activeKec}_${activeDesa}.csv`;
+
+                // Proses Eksekusi Download di Browser
+                let blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                let link = document.createElement("a");
+                let url = URL.createObjectURL(blob);
+                link.setAttribute("href", url);
+                link.setAttribute("download", fileName);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
         }
 
         function updateVisuals(data) {
