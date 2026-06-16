@@ -267,7 +267,10 @@
                 }
                 
                 if (row.kddesa) grouped[key].kddesa_set.add(padZero(row.kddesa, 3));
-                if (row.kdsls) grouped[key].kdsls_set.add(padZero(row.kdsls, 4));
+                if (row.kdsls) {
+    let namaSls = (row.nmsls && row.nmsls !== 'TANPA SLS') ? ` - ${row.nmsls}` : ' - TANPA SLS';
+    grouped[key].kdsls_set.add(padZero(row.kdsls, 4) + namaSls);
+}
                 
                 grouped[key].Open += getGroupedStatus(row, 'Open');
                 grouped[key].Draft += getGroupedStatus(row, 'Draft');
