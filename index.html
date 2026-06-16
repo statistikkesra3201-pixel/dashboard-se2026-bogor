@@ -182,9 +182,17 @@
             return s;
         }
 
-        // 🔥 LOGIKA BARU: Memisahkan Submit (Pencacah) dan Approved (Pengawas)
-        function getGroupedStatus(row, kategori) {
+        // 🔥 LOGIKA SUPER KETAT: Memisahkan beban kerja Pencacah & Pengawas
+        function getGroupedStatus(row, kategori, userName) {
             let total = 0;
+            // Deteksi apakah baris ini milik Pengawas
+            let isPengawas = String(userName).toLowerCase().includes('pengawas');
+
+            // ATURAN 1: Pengawas HANYA terisi kalau Approved dan Rejected (Open, Draft, Submit = 0)
+            if (isPengawas && (kategori === 'Open' || kategori === 'Draft' || kategori === 'Submit')) {
+                return 0;
+            }
+
             if (kategori === 'Open') {
                 total = parseInt(row['OPEN'] || 0) + parseInt(row['Open'] || 0);
             } else if (kategori === 'Draft') {
@@ -196,6 +204,7 @@
             } else if (kategori === 'Reject') {
                 total = parseInt(row['REJECTED BY Pengawas'] || 0) + parseInt(row['REVOKED BY Pengawas'] || 0) + parseInt(row['Rejected'] || 0);
             }
+            
             return isNaN(total) ? 0 : total;
         }
 
@@ -232,11 +241,11 @@
                     grouped[key].kdsls_set.add(padZero(row.kdsls, 4) + namaSls);
                 }
                 
-                grouped[key].Open += getGroupedStatus(row, 'Open');
-                grouped[key].Draft += getGroupedStatus(row, 'Draft');
-                grouped[key].Submit += getGroupedStatus(row, 'Submit');
-                grouped[key].Approved += getGroupedStatus(row, 'Approved');
-                grouped[key].Reject += getGroupedStatus(row, 'Reject');
+                grouped[key].Open += getGroupedStatus(row, 'Open', userName);
+                grouped[key].Draft += getGroupedStatus(row, 'Draft', userName);
+                grouped[key].Submit += getGroupedStatus(row, 'Submit', userName);
+                grouped[key].Approved += getGroupedStatus(row, 'Approved', userName);
+                grouped[key].Reject += getGroupedStatus(row, 'Reject', userName);
             });
             
             return Object.values(grouped).map(item => {
@@ -277,7 +286,7 @@
                     { data: null, className: 'text-center fw-bold', render: (data, type, row) => row.Open + row.Draft + row.Submit + row.Approved + row.Reject }
                 ],
                 pageLength: 10,
-                order: [[8, "asc"]], // Urutkan default (bisa diubah)
+                order: [[8, "asc"]], 
                 language: { search: "Cari Data:", lengthMenu: "Tampil _MENU_", info: "Menampilkan _START_ - _END_ dari _TOTAL_ petugas" }
             });
 
@@ -341,11 +350,11 @@
                 
                 for (let i = 0; i < filteredRaw.length; i++) {
                     let row = filteredRaw[i];
-                    let openVal = getGroupedStatus(row, 'Open');
-                    let draftVal = getGroupedStatus(row, 'Draft');
-                    let submitVal = getGroupedStatus(row, 'Submit');
-                    let appVal = getGroupedStatus(row, 'Approved');
-                    let rejectVal = getGroupedStatus(row, 'Reject');
+                    let openVal = getGroupedStatus(row, 'Open', row.user);
+                    let draftVal = getGroupedStatus(row, 'Draft', row.user);
+                    let submitVal = getGroupedStatus(row, 'Submit', row.user);
+                    let appVal = getGroupedStatus(row, 'Approved', row.user);
+                    let rejectVal = getGroupedStatus(row, 'Reject', row.user);
                     let totalTarget = openVal + draftVal + submitVal + appVal + rejectVal;
 
                     let cleanUser = (row.user || "").replace(/"/g, '""');
@@ -377,15 +386,15 @@
         function updateVisuals(data) {
             let tOpen = 0, tDraft = 0, tSubmit = 0, tApprove = 0, tReject = 0;
             data.forEach(r => {
-                tOpen += getGroupedStatus(r, 'Open'); 
-                tDraft += getGroupedStatus(r, 'Draft');
-                tSubmit += getGroupedStatus(r, 'Submit'); 
-                tApprove += getGroupedStatus(r, 'Approved');
-                tReject += getGroupedStatus(r, 'Reject');
+                tOpen += getGroupedStatus(r, 'Open', r.user); 
+                tDraft += getGroupedStatus(r, 'Draft', r.user);
+                tSubmit += getGroupedStatus(r, 'Submit', r.user); 
+                tApprove += getGroupedStatus(r, 'Approved', r.user);
+                tReject += getGroupedStatus(r, 'Reject', r.user);
             });
 
             let tTarget = tOpen + tDraft + tSubmit + tApprove + tReject;
-            let tSelesai = tSubmit + tApprove; // Anggap Submit Pcl & Apprv Pml sebagai progress yang terukur
+            let tSelesai = tSubmit + tApprove; 
             let percent = tTarget === 0 ? 0 : Math.round((tSelesai / tTarget) * 100);
 
             document.getElementById("valOpen").innerText = tOpen.toLocaleString();
@@ -399,7 +408,6 @@
             pBar.innerText = percent + "% (" + tSelesai.toLocaleString() + " / " + tTarget.toLocaleString() + ")";
             pBar.className = "progress-bar progress-bar-striped progress-bar-animated " + (percent < 50 ? "bg-warning text-dark" : "progress-bar-se");
 
-            // Update Donut Chart dengan 5 Warna
             if(donutChart) {
                 donutChart.data.labels = ['Open', 'Draft', 'Submit', 'Approved', 'Rejected'];
                 donutChart.data.datasets[0].data = [tOpen, tDraft, tSubmit, tApprove, tReject];
